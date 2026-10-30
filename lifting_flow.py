@@ -1,15 +1,17 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-size = 15
-resolution = 1000
+from plotting import plot_flow
+
+size = 15          # half-width of the plotted domain
+resolution = 1000  # grid points per axis
 xs = np.linspace(-size, size, resolution)
 ys = np.linspace(-size, size, resolution)
 X, Y = np.meshgrid(xs, ys)
-radius = 2
-v_inf = 30
+radius = 2         # cylinder radius R
+v_inf = 30         # free-stream velocity V_inf
 delta = xs[1] - xs[0]
-gamma = 1000
+gamma = 1000       # circulation Gamma (positive = clockwise)
 
 cylinder = lambda x, y: v_inf * np.sqrt(x**2 + y**2) * np.sin(np.arctan2(y, x)) * (1 - (radius / np.sqrt(x**2 + y**2))**2)
 vortex = lambda x, y: gamma / (2 * np.pi) * np.log(np.sqrt(x**2 + y**2) / radius)
@@ -23,9 +25,8 @@ u = np.gradient(flow, delta, axis=0)
 v = -np.gradient(flow, delta, axis=1)
 speed = np.sqrt(u**2 + v**2)
 
-plt.axes().set_aspect('equal')
-plt.imshow(~mask, alpha=0.5, extent=(-size, size, -size, size), cmap='binary')
-plt.pcolormesh(X, Y, pressure_coeff(speed), cmap='inferno')
-plt.colorbar()
-plt.streamplot(X, Y, u, v, density=2)
+ratio = gamma / (4 * np.pi * v_inf * radius)
+plot_flow(X, Y, flow, pressure_coeff(speed), radius,
+          title=rf"Lifting flow over a circular cylinder, $\Gamma / (4\pi V_\infty R) = {ratio:.2f}$",
+          filename="lifting_flow.png")
 plt.show()
